@@ -57,11 +57,14 @@ class resume_chunk:
             "Use \n for different topic discription."
     
     def generate_resume(self, self_input):
+        """
+        Return in string looks like JSON
+        """
         self._user_input = self_input
         self.three_models()
         self.blending()
         self.json_parsing()
-        return self.resume_result
+        return self.json_result
 
     def three_models(self):
         assert isinstance(self._user_input, dict)
@@ -124,14 +127,14 @@ class resume_chunk:
         try:
             # 여러 형식의 JSON 파싱 시도
             if self._blending_result.startswith('['):
-                self.resume_result = json.loads(self._blending_result)
-                if isinstance(self.resume_result, list) and len(self.resume_result) > 0:
-                    return self.resume_result[0]  # 리스트의 첫 번째 항목 반환
+                self.json_result = json.loads(self._blending_result)
+                if isinstance(self.json_result, list) and len(self.json_result) > 0:
+                    return self.json_result[0]  # 리스트의 첫 번째 항목 반환
                 else:
                     raise ValueError("Empty array result")
             elif self._blending_result.startswith('{'):
-                self.resume_result = json.loads(self._blending_result)
-                return self.resume_result  # 단일 객체 반환
+                self.json_result = json.loads(self._blending_result)
+                return self.json_result  # 단일 객체 반환
             else:
                 # 중간에 JSON 객체가 있는지 확인
                 self._blending_result = self._blending_result.replace("```json", "").replace("```", "")
@@ -140,10 +143,11 @@ class resume_chunk:
                 json_end = self._blending_result.rfind('}') + 1
                 if json_start >= 0 and json_end > json_start:
                     json_content = self._blending_result[json_start:json_end]
-                    self.resume_result = json.loads(json_content)
-                    return self.resume_result
+                    self.json_result = json.loads(json_content)
+                    return self.json_result
                 else:
                     raise ValueError("No valid JSON found in content")
         except (json.JSONDecodeError, ValueError) as json_err:
             print(f"JSON parsing error: {str(json_err)}")
             print(f"Content to parse: {self._blending_result}")
+        
