@@ -2,20 +2,28 @@ from openai import OpenAI
 import anthropic
 import google.generativeai as genai
 import json
+import threading
 
 class resume_chunk:
-    def __init__(self, CHATGPT_API, CLAUDE_API, GEMINI_API, DEEPSEEK_API, section):
+    def __init__(self, CHATGPT_API: str, CLAUDE_API: str, GEMINI_API: str, DEEPSEEK_API: str, section: str) -> None:
         self._CHATGPT_API = CHATGPT_API
         self._CLAUDE_API = CLAUDE_API
         self._GEMINI_API = GEMINI_API
         self._DEEPSEEK_API = DEEPSEEK_API
         self._section = section
-        self._sectionOutputOrder = {"project" : {
+        self._sectionOutputOrder = {"projects" : {
             "title": "Project Name", 
             "position" : "user's position", 
             "duration" : "duration of project", 
-            "Description" : "Project Description based on keyword"}
+            "description" : "Project Description based on keyword"
+            },
+            "jobs" : {
+                "title" : "job title",
+                "position" : "job position",
+                "duration" : "duration for job",
+                "description" : "job role descritpion based on keyword"
             }
+        }
 
     def set_chatgptAPI(self, api_key):
         assert isinstance(api_key, str)
@@ -58,7 +66,7 @@ class resume_chunk:
     
     def generate_resume(self, self_input):
         """
-        Return in string looks like JSON
+        Return in JSON
         """
         self._user_input = self_input
         self.three_models()
@@ -68,47 +76,62 @@ class resume_chunk:
 
     def three_models(self):
         assert isinstance(self._user_input, dict)
-
+        results = [None, None, None]
         self._user_input = f"{self._user_input}"
-        client = OpenAI(api_key= self._CHATGPT_API)
-        completion = client.chat.completions.create(
-            model="gpt-4o", 
-            store=True, 
-            messages = [
-                {"role": "developer", "content": self._systemRole},
-                {"role": "user", "content": self._user_input}
-            ]
-        )
-        # print(completion.choices[0].message.content)
+
+        def chat_gpt():
+            client = OpenAI(api_key= self._CHATGPT_API)
+            completion = client.chat.completions.create(
+                model="gpt-4o", 
+                store=True, 
+                messages = [
+                    {"role": "developer", "content": self._systemRole},
+                    {"role": "user", "content": self._user_input}
+                ]
+            )
+            results[0] = completion.choices[0].message.content
+            # print(completion.choices[0].message.content)
 
         #Claude
-
-        client = anthropic.Anthropic(
-            api_key=self._CLAUDE_API,
-        )
-        message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=1000,
-            temperature=0.0,
-            system = self._systemRole,
-            messages = [{'role': 'user', 'content': self._user_input}]
-        )
-        # print(message.content[0].text)
+        def claude():
+            client = anthropic.Anthropic(
+                api_key=self._CLAUDE_API,
+            )
+            message = client.messages.create(
+                model="claude-3-5-sonnet-20241022",
+                max_tokens=1000,
+                temperature=0.0,
+                system = self._systemRole,
+                messages = [{'role': 'user', 'content': self._user_input}]
+            )
+            results[1] = message.content[0].text
+            # print(message.content[0].text)
 
         #Gemini
+        def gemini():
+            genai.configure(api_key=self._GEMINI_API)
 
-        genai.configure(api_key=self._GEMINI_API)
+            model2 = genai.GenerativeModel(model_name='gemini-2.5-pro-exp-03-25',
+                                        system_instruction=self._systemRole)
+            response2 = model2.generate_content(
+                contents=self._user_input
+            )
+            results[2] = response2.text
+            # print(response2.text)
 
-        model2 = genai.GenerativeModel(model_name='gemini-2.5-pro-exp-03-25',
-                                    system_instruction=self._systemRole)
-        response2 = model2.generate_content(
-            contents=self._user_input
-        )
-        # print(response2.text)
+        threads = [
+            threading.Thread(target=chat_gpt),
+            threading.Thread(target=claude),
+            threading.Thread(target=gemini),
+        ]
 
-        self.three_modelsResult = [completion.choices[0].message.content, 
-                                   message.content[0].text, 
-                                   response2.text]
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        self.three_modelsResult = results
     
     def blending(self):
         client = OpenAI(api_key=self._DEEPSEEK_API, base_url="https://api.deepseek.com")
@@ -117,7 +140,7 @@ class resume_chunk:
                     messages=[
                         {"role": "system", "content": "You are an output blender. Your job is to blend three inputs into one output and make a best possible outcome." \
                         "The output should be JSON format that looks like this: [{title : job or project title}, {position: user's position}, {duration: duration in this position}, {description : description about the job or project in my context of user's position}]." \
-                            "Any specific numbers in input should be replaced with underbar. Make it as 3 ~ 4 bullet pointed Descriptions."},
+                            "Any specific numbers in input should be replaced with underbar. Make it as 3 ~ 4 bullet pointed Descriptions with list format."},
                         {"role": "user", "content": f"1st Input: {self.three_modelsResult[0]}, 2nd Input: {self.three_modelsResult[1]}, 3rd Input: {self.three_modelsResult[2]}"}
                     ],
                     stream=False
