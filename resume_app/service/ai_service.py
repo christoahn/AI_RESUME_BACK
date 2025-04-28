@@ -139,7 +139,7 @@ class resume_chunk:
                     model="deepseek-chat",
                     messages=[
                         {"role": "system", "content": "You are an output blender. Your job is to blend three inputs into one output and make a best possible outcome." \
-                        "The output should be JSON format that looks like this: [{title : job or project title}, {position: user's position}, {duration: duration in this position}, {description : description about the job or project in my context of user's position}]." \
+                        f"The output should be JSON format that looks like this: {self._sectionOutputOrder[self._section]}." \
                             "Any specific numbers in input should be replaced with underbar. Make it as 3 ~ 4 bullet pointed Descriptions with list format."},
                         {"role": "user", "content": f"1st Input: {self.three_modelsResult[0]}, 2nd Input: {self.three_modelsResult[1]}, 3rd Input: {self.three_modelsResult[2]}"}
                     ],

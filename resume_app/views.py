@@ -41,7 +41,7 @@ class second_page(View):
     def generate_resume(self, request_body):
         """
         Request body example
-        {'name':'Char',
+        {'name':'Christopher',
         'phone':'1234567890',
         'email':'asdfasdf@gmail.com',
         'jobs':{
@@ -54,13 +54,19 @@ class second_page(View):
                             'company_name': ....
                             'duration': ....
                             'position': ....
-                            'keywords': ....}}},
+                            'keywords': ....}},
         'projects':{
                 'project1':{
                             'project_name': ...
                             'duration': ...
                             'role': ...
+                            'keywords': ...},
+                'project2':{
+                            'project_name': ...
+                            'duration': ...
+                            'role': ...
                             'keywords': ...}}
+        }
         """
         #찬균형과 변수명 맞추기
         name = request_body['name']
@@ -86,9 +92,9 @@ class second_page(View):
         }
 
 
-        for project in projects.get('projects', []):
+        for project in projects.values():
             chunk = chunks['projects']
-            desc = chunk.generate_resume(project['keywords'])
+            desc = chunk.generate_resume(project)
             assert isinstance(desc, dict)
 
             Project.objects.create(
@@ -98,9 +104,9 @@ class second_page(View):
                 description=desc['description']
             )
 
-        for job in jobs.get('jobs', []):
+        for job in jobs.values():
             chunk = chunks['jobs']
-            desc = chunk.generate_resume(job['keywords'])
+            desc = chunk.generate_resume(job)
             assert isinstance(desc, dict)
 
             Job.objects.create(
@@ -111,19 +117,19 @@ class second_page(View):
                 description=desc['description']
             )
 
-        for research in researches.get('researches', []):
+        for research in researches.values():
             chunk = chunks['researches']
-            desc = chunk.generate_resume(research['keywords'])
+            desc = chunk.generate_resume(research)
             assert isinstance(desc, dict)
 
             Research.objects.create(
                 resume=resume,
                 title=research['title'],
-                project_duration=research['duration'],
+                research_duration=research['duration'],
                 description=desc['description']
             )
 
-        for edu in educations.get('educations', []):
+        for edu in educations.values():
             Education.objects.create(
                 resume=resume,
                 school_name=edu['school_name'],
