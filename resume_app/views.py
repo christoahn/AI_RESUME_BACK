@@ -144,7 +144,7 @@ class third_page(View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get(self, request, resume_id = 1):
+    def GET(self, request, resume_id = 1):
         resume = Resume.objects.get(id = resume_id)
 
         data = {
