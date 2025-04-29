@@ -159,9 +159,6 @@ class userInfoInputPage(View):
                     duration=edu['duration'],
                     gpa = edu['gpa']
                 )
-            print(resume)
-            print(resume.id)
-            # print(resume.)
  
             return JsonResponse({'status':'success', 'resume_id': resume.id})
         except Exception as e:
@@ -199,6 +196,6 @@ class ResumePreviewEditPage(View):
             "researches": {item["id"]: item for item in resume.researches.all().values()},
             "educations": {item["id"]: item for item in resume.educations.all().values()}
         }
-        print(resume_data)
+        # print(resume_data)
         return JsonResponse({'status': 'success', 'data': resume_data})
     
