@@ -22,8 +22,22 @@ class resume_chunk:
                 "position" : "job position",
                 "duration" : "duration for job",
                 "description" : "job role descritpion based on keyword"
+            },
+            "researches" : {
+                "title" : "research title",
+                "duration" : "research duration",
+                "description" : "research descritpion based on keyword"
             }
         }
+        self._systemRole = "You are one parts of AI resume generator." \
+            f"Your assigned section is {self._section}. " \
+            f"You will be provided with {self._section} title, user's position, and keywords for the {self._section}. " \
+            "Your role is generating one chunk of resume based on keyword and STAR methodology (Situation, Task, Action, Result). " \
+            "Also you will edit it by user's preference and command. " \
+            "The output should \"JSON\" format like this: " \
+            f"{self._sectionOutputOrder[self._section]}." \
+            "Again, your job is to make DETAILED sentences without any ambiguity with provided Keyword. Include detailed numbers if possible. This is your final Goal." \
+            "Use \n for different topic discription."
 
     def set_chatgptAPI(self, api_key):
         assert isinstance(api_key, str)
@@ -53,16 +67,8 @@ class resume_chunk:
         self._section = section
         self.set_systemRole()
 
-    def set_systemRole(self):
-        self._systemRole = "You are one parts of AI resume generator." \
-            f"Your assigned section is {self._section}. " \
-            f"You will be provided with {self._section} title, user's position, and keywords for the {self._section}. " \
-            "Your role is generating one chunk of resume based on keyword and STAR methodology (Situation, Task, Action, Result). " \
-            "Also you will edit it by user's preference and command. " \
-            "The output should \"JSON\" format like this: " \
-            f"{self._sectionOutputOrder[self._section]}." \
-            "Again, your job is to make DETAILED sentences without any ambiguity with provided Keyword. Include detailed numbers if possible. This is your final Goal." \
-            "Use \n for different topic discription."
+    def set_systemRole(self, system_role):
+        self._systemRole = system_role
     
     def generate_resume(self, self_input):
         """
@@ -135,7 +141,7 @@ class resume_chunk:
     
     def blending(self):
         client = OpenAI(api_key=self._DEEPSEEK_API, base_url="https://api.deepseek.com")
-        self._blending_result = client.chat.completions.create(
+        blend_result = client.chat.completions.create(
                     model="deepseek-chat",
                     messages=[
                         {"role": "system", "content": "You are an output blender. Your job is to blend three inputs into one output and make a best possible outcome." \
@@ -145,6 +151,7 @@ class resume_chunk:
                     ],
                     stream=False
                 )
+        self._blending_result = blend_result.choices[0].message.content
         
     def json_parsing(self):
         try:

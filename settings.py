@@ -21,7 +21,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'resume_app',  # 너가 만든 앱 등록
+    # 'rest_framework'
+    'resume_app'
 ]
 
 TEMPLATES = [
@@ -81,6 +82,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000/"
+]
+
 # 국제화
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -95,3 +104,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'  # collectstatic 할 때 모이는 경로
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'mediafiles'
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.AllowAny',  # 개발 중엔 모두 허용
+#     ],
+#     'DEFAULT_AUTHENTICATION_CLASSES': [],
+# }

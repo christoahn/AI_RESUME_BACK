@@ -42,7 +42,9 @@ class Education(models.Model):
     resume = models.ForeignKey(Resume, related_name='educations', on_delete=models.CASCADE)
     school_name = models.CharField(max_length=200)
     degree = models.CharField(max_length=100)
-    graduation_year = models.CharField(max_length=4)
+    duration = models.CharField(max_length=15, null=True)
+    major = models.CharField(max_length=50, null = True)
+    gpa = models.CharField(max_length=5, null=True)
 
     def __str__(self):
         return self.school_name
