@@ -180,19 +180,31 @@ class third_page(View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def GET(self, request, resume_id = 1):
-        resume = Resume.objects.get(id = resume_id)
+    def get(self, request):
+        resume_id = request.GET.get('resume_id')
+        if resume_id == None:
+            return JsonResponse({'error': 'resume_id query parameter is required.'}, status = 400)
+        
+        try:
+            resume = int(resume_id)
+        except ValueError:
+            return JsonResponse({'error' : 'resume_id must be integer'}, status = 400)
+        
+        try:
+            resume = Resume.objects.get(id = resume_id)
+        except Resume.DoesNotExist:
+            return JsonResponse({'error' : 'No resume found'}, status = 404)
 
-        data = {
+        resume = {
             "name": resume.name,
             "phone": resume.phone,
             "email": resume.email,
             "address": resume.address,
-            "projects": list(resume.projects.values()),
-            "jobs": list(resume.jobs.values()),
-            "researchs": list(resume.researchs.values()),
-            "educations": list(resume.educations.values())
+            "projects": resume.projects,
+            "jobs": resume.jobs,
+            "researchs": resume.researches,
+            "educations": resume.educations
         }
         
-        return JsonResponse(data)
+        return JsonResponse({'status': 'success', 'data': resume})
     
