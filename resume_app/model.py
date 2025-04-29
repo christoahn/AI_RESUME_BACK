@@ -30,7 +30,7 @@ class Job(models.Model):
         return self.company_name
     
 class Research(models.Model):
-    resume = models.ForeignKey(Resume, related_name='researchs', on_delete=models.CASCADE)
+    resume = models.ForeignKey(Resume, related_name='researches', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     research_duration = models.CharField(max_length=100)  # ex: "2023.01 ~ 2023.06"
     description = models.TextField()

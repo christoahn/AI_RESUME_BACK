@@ -117,7 +117,7 @@ class resume_chunk:
         def gemini():
             genai.configure(api_key=self._GEMINI_API)
 
-            model2 = genai.GenerativeModel(model_name='gemini-2.5-pro-exp-03-25',
+            model2 = genai.GenerativeModel(model_name='gemini-2.0-flash',
                                         system_instruction=self._systemRole)
             response2 = model2.generate_content(
                 contents=self._user_input

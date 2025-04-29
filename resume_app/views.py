@@ -15,7 +15,7 @@ GEMINI_API = os.getenv('GEMINI_API')
 DEEPSEEK_API = os.getenv('DEEPSEEK_API')
 
 @method_decorator(csrf_exempt, name='dispatch') #토큰 확인 절차 생략
-class second_page(View):
+class userInfoInputPage(View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -110,9 +110,7 @@ class second_page(View):
                 'researches': research_chunk
             }
 
-            for job in jobs.values():
-                if job['company_name'] == None:
-                    continue
+            for job in filter(lambda x: x['company_name'] != None, jobs.values()):
                 chunk = chunks['jobs']
                 desc = chunk.generate_resume(job)
                 assert isinstance(desc, dict)
@@ -126,9 +124,7 @@ class second_page(View):
                 )
 
             # print(chunks)
-            for project in projects.values():
-                if project['project_name'] == None:
-                    continue
+            for project in filter(lambda x: x['project_name'] != None, projects.values()):
                 # print(project['project_name'])
                 chunk = chunks['projects']
                 desc = chunk.generate_resume(project)
@@ -141,9 +137,7 @@ class second_page(View):
                     description=desc['description']
                 )
 
-            for research in researches.values():
-                if research['title'] == None:
-                    continue
+            for research in filter(lambda x: x['title'] != None, researches.values()):
                 # print(research["title"])
                 chunk = chunks['researches']
                 desc = chunk.generate_resume(research)
@@ -156,9 +150,7 @@ class second_page(View):
                     description=desc['description']
                 )
 
-            for edu in educations.values():
-                if edu['school'] == None:
-                    continue
+            for edu in filter(lambda x: x['school'] != None, educations.values()):
                 Education.objects.create(
                     resume=resume,
                     school_name=edu['school'],
@@ -168,7 +160,9 @@ class second_page(View):
                     gpa = edu['gpa']
                 )
             print(resume)
-
+            print(resume.id)
+            # print(resume.)
+ 
             return JsonResponse({'status':'success', 'resume_id': resume.id})
         except Exception as e:
             tb = traceback.format_exc()
@@ -176,7 +170,7 @@ class second_page(View):
             return JsonResponse({'error': str(e)}, status=500)
     
 
-class third_page(View):
+class ResumePreviewEditPage(View):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -195,16 +189,16 @@ class third_page(View):
         except Resume.DoesNotExist:
             return JsonResponse({'error' : 'No resume found'}, status = 404)
 
-        resume = {
+        resume_data = {
             "name": resume.name,
             "phone": resume.phone,
             "email": resume.email,
             "address": resume.address,
-            "projects": resume.projects,
-            "jobs": resume.jobs,
-            "researchs": resume.researches,
-            "educations": resume.educations
+            "projects": {item["id"]: item for item in resume.projects.all().values()},
+            "jobs": {item["id"]: item for item in resume.jobs.all().values()},
+            "researches": {item["id"]: item for item in resume.researches.all().values()},
+            "educations": {item["id"]: item for item in resume.educations.all().values()}
         }
-        
-        return JsonResponse({'status': 'success', 'data': resume})
+        print(resume_data)
+        return JsonResponse({'status': 'success', 'data': resume_data})
     
