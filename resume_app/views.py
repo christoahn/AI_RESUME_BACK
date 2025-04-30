@@ -91,7 +91,7 @@ class userInfoInputPage(View):
             researches = request_body.get('researches', {})
             educations = request_body.get('educations', {})
 
-            # print(projects)
+            print(projects)
             resume = Resume.objects.create(
                 name = name,
                 phone = phone,
@@ -117,7 +117,7 @@ class userInfoInputPage(View):
 
                 Job.objects.create(
                     resume=resume,
-                    company_name=job['name'],
+                    name=job['name'],
                     position=job['position'],
                     duration=job['duration'],
                     description=desc['description']
@@ -132,21 +132,20 @@ class userInfoInputPage(View):
 
                 Project.objects.create(
                     resume=resume,
-                    title=project['name'],
-                    position=project['posistion'],
+                    name=project['name'],
+                    position=project['position'],
                     duration=project['duration'],
                     description=desc['description']
                 )
 
             for research in filter(lambda x: x['name'] != None, researches.values()):
-                # print(research["title"])
                 chunk = chunks['researches']    # Different AI chunk generator
                 desc = chunk.generate_resume(research)
                 assert isinstance(desc, dict)
 
                 Research.objects.create(
                     resume=resume,
-                    title=research['name'],
+                    name=research['name'],
                     duration=research['duration'],
                     description=desc['description']
                 )
