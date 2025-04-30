@@ -110,50 +110,51 @@ class userInfoInputPage(View):
                 'researches': research_chunk
             }
 
-            for job in filter(lambda x: x['company_name'] != None, jobs.values()):
-                chunk = chunks['jobs']
+            for job in filter(lambda x: x['name'] != None, jobs.values()):
+                chunk = chunks['jobs']  # Different AI chunk generator
                 desc = chunk.generate_resume(job)
                 assert isinstance(desc, dict)
 
                 Job.objects.create(
                     resume=resume,
-                    company_name=job['company_name'],
+                    company_name=job['name'],
                     position=job['position'],
-                    work_duration=job['duration'],
+                    duration=job['duration'],
                     description=desc['description']
                 )
 
             # print(chunks)
-            for project in filter(lambda x: x['project_name'] != None, projects.values()):
+            for project in filter(lambda x: x['name'] != None, projects.values()):
                 # print(project['project_name'])
-                chunk = chunks['projects']
+                chunk = chunks['projects']  # Different AI chunk generator
                 desc = chunk.generate_resume(project)
                 assert isinstance(desc, dict)
 
                 Project.objects.create(
                     resume=resume,
-                    title=project['project_name'],
-                    project_duration=project['duration'],
+                    title=project['name'],
+                    position=project['posistion'],
+                    duration=project['duration'],
                     description=desc['description']
                 )
 
-            for research in filter(lambda x: x['title'] != None, researches.values()):
+            for research in filter(lambda x: x['name'] != None, researches.values()):
                 # print(research["title"])
-                chunk = chunks['researches']
+                chunk = chunks['researches']    # Different AI chunk generator
                 desc = chunk.generate_resume(research)
                 assert isinstance(desc, dict)
 
                 Research.objects.create(
                     resume=resume,
-                    title=research['title'],
-                    research_duration=research['research_duration'],
+                    title=research['name'],
+                    duration=research['duration'],
                     description=desc['description']
                 )
 
-            for edu in filter(lambda x: x['school'] != None, educations.values()):
+            for edu in filter(lambda x: x['name'] != None, educations.values()):
                 Education.objects.create(
                     resume=resume,
-                    school_name=edu['school'],
+                    name=edu['name'],
                     degree=edu['degree'],
                     major = edu['major'],
                     duration=edu['duration'],

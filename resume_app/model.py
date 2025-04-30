@@ -12,8 +12,9 @@ class Resume(models.Model):
     
 class Project(models.Model):
     resume = models.ForeignKey(Resume, related_name='projects', on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    project_duration = models.CharField(max_length=100)  # ex: "2023.01 ~ 2023.06"
+    name = models.CharField(max_length=200)
+    position = models.CharField(max_length=50)
+    duration = models.CharField(max_length=100)  # ex: "2023.01 ~ 2023.06"
     description = models.TextField()
 
     def __str__(self):
@@ -21,9 +22,9 @@ class Project(models.Model):
     
 class Job(models.Model):
     resume = models.ForeignKey(Resume, related_name='jobs', on_delete=models.CASCADE)
-    company_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     position = models.CharField(max_length=100)
-    work_duration = models.CharField(max_length=100)
+    duration = models.CharField(max_length=100)
     description = models.TextField()
 
     def __str__(self):
@@ -31,8 +32,8 @@ class Job(models.Model):
     
 class Research(models.Model):
     resume = models.ForeignKey(Resume, related_name='researches', on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    research_duration = models.CharField(max_length=100)  # ex: "2023.01 ~ 2023.06"
+    name = models.CharField(max_length=200)
+    duration = models.CharField(max_length=100)  # ex: "2023.01 ~ 2023.06"
     description = models.TextField()
 
     def __str__(self):
@@ -40,7 +41,7 @@ class Research(models.Model):
 
 class Education(models.Model):
     resume = models.ForeignKey(Resume, related_name='educations', on_delete=models.CASCADE)
-    school_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     degree = models.CharField(max_length=100)
     duration = models.CharField(max_length=15, null=True)
     major = models.CharField(max_length=50, null = True)
