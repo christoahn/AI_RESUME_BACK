@@ -146,7 +146,8 @@ class resume_chunk:
                     messages=[
                         {"role": "system", "content": "You are an output blender. Your job is to blend three inputs into one output and make a best possible outcome." \
                         f"The output should be JSON format that looks like this: {self._sectionOutputOrder[self._section]}." \
-                            "Any specific numbers in input should be replaced with underbar. Make it as 3 ~ 4 bullet pointed Descriptions with list format."},
+                            "Any specific numbers in input should be replaced with underbar. Make it as several bullet pointed Descriptions (maximum 5) with list format and it should be look like this: "
+                            "'['bullet point 1', 'bullet point 2', 'bullet point 3', ...]'"},
                         {"role": "user", "content": f"1st Input: {self.three_modelsResult[0]}, 2nd Input: {self.three_modelsResult[1]}, 3rd Input: {self.three_modelsResult[2]}"}
                     ],
                     stream=False
