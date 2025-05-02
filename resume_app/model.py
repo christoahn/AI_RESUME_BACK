@@ -4,7 +4,7 @@ class Resume(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=100, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -46,6 +46,7 @@ class Education(models.Model):
     duration = models.CharField(max_length=15, null=True)
     major = models.CharField(max_length=50, null = True)
     gpa = models.CharField(max_length=5, null=True)
+    coursework = models.CharField(max_length=300, null=True)
 
     def __str__(self):
         return self.school_name

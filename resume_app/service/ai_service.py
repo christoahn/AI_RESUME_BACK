@@ -147,7 +147,7 @@ class resume_chunk:
                     messages=[
                         {"role": "system", "content": "You are an output blender. Your job is to blend three inputs into one output and make a best possible outcome." \
                         f"The output should be JSON format that looks like this: {self._sectionOutputOrder[self._section]}." \
-                            "Any specific numbers in input should be replaced with underbar. Make it as several bullet pointed Descriptions (maximum 5) with list format and it should be look like this: "
+                            "Any specific numbers in input should be replaced with underbar. Make it as several bullet pointed Descriptions (adjust from 1 to 5) with list format and it should be look like this: "
                             "'['bullet point 1', 'bullet point 2', 'bullet point 3', ...]'. Do not use double quotes"},
                         {"role": "user", "content": f"1st Input: {self.three_modelsResult[0]}, 2nd Input: {self.three_modelsResult[1]}, 3rd Input: {self.three_modelsResult[2]}"}
                     ],
@@ -186,6 +186,7 @@ class resume_chunk:
 class chatting:
     def __init__(self, DEEPSEEK_API):
         self._DEEPSEEK_API = DEEPSEEK_API
+        self._chatHistory = []
  
     def chat(self, request):
         resume_id = request.GET.get('resume_id')
@@ -198,10 +199,17 @@ class chatting:
         response = client.chat.completions.create(
                     model="deepseek-chat",
                     messages=[
-                        {"role": "system", 
-                         "content": "You are an AI resume generator chat bot. Your job is to fix resume based on user's will and instruction."}
+                        {
+                            "role": "system", 
+                            "content": "You are an AI resume generator chat bot. Your job is to fix resume based on user's will and instruction." /
+                            f"This is current pre-generated resume: {resume}"},
+                         {
+                             "role": "user",
+                             "content" : message
+                         }
                     ],
                     stream=False
                 )
-        self.response = response.choices[0].message.content
+        response = response.choices[0].message.content
 
+        
