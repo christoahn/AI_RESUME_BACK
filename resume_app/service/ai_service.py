@@ -182,3 +182,8 @@ class resume_chunk:
             print(f"JSON parsing error: {str(json_err)}")
             print(f"Content to parse: {self._blending_result}")
         
+class chatting:
+    def __init__(self):
+        pass
+
+    def chat(self, )
