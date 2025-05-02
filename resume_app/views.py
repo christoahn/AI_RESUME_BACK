@@ -199,3 +199,10 @@ class ResumePreviewEditPage(View):
         # print(resume_data)
         return JsonResponse({'status': 'success', 'data': resume_data})
     
+    class ResumePreviewChat(View):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+        def POST(self, request):
+            return
+    
