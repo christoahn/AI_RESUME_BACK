@@ -3,6 +3,7 @@ import anthropic
 import google.generativeai as genai
 import json
 import threading
+from resume_app.model import Resume, Project, Job, Research, Education 
 
 class resume_chunk:
     def __init__(self, CHATGPT_API: str, CLAUDE_API: str, GEMINI_API: str, DEEPSEEK_API: str, section: str) -> None:
@@ -146,8 +147,8 @@ class resume_chunk:
                     messages=[
                         {"role": "system", "content": "You are an output blender. Your job is to blend three inputs into one output and make a best possible outcome." \
                         f"The output should be JSON format that looks like this: {self._sectionOutputOrder[self._section]}." \
-                            "Any specific numbers in input should be replaced with underbar. Make it as several bullet pointed Descriptions (maximum 5) with list format and it should be look like this: "
-                            "'['bullet point 1', 'bullet point 2', 'bullet point 3', ...]'"},
+                            "Any specific numbers in input should be replaced with underbar. Make it as several bullet pointed Descriptions (adjust from 1 to 5) with list format and it should be look like this: "
+                            "'['bullet point 1', 'bullet point 2', 'bullet point 3', ...]'. Do not use double quotes"},
                         {"role": "user", "content": f"1st Input: {self.three_modelsResult[0]}, 2nd Input: {self.three_modelsResult[1]}, 3rd Input: {self.three_modelsResult[2]}"}
                     ],
                     stream=False
@@ -181,4 +182,34 @@ class resume_chunk:
         except (json.JSONDecodeError, ValueError) as json_err:
             print(f"JSON parsing error: {str(json_err)}")
             print(f"Content to parse: {self._blending_result}")
+        
+class chatting:
+    def __init__(self, DEEPSEEK_API):
+        self._DEEPSEEK_API = DEEPSEEK_API
+        self._chatHistory = []
+ 
+    def chat(self, request):
+        resume_id = request.GET.get('resume_id')
+        message = request.GET.get('message')
+
+        resume = Resume.objects.get(id = resume_id)
+
+
+        client = OpenAI(api_key=self._DEEPSEEK_API, base_url="https://api.deepseek.com")
+        response = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {
+                            "role": "system", 
+                            "content": "You are an AI resume generator chat bot. Your job is to fix resume based on user's will and instruction." /
+                            f"This is current pre-generated resume: {resume}"},
+                         {
+                             "role": "user",
+                             "content" : message
+                         }
+                    ],
+                    stream=False
+                )
+        response = response.choices[0].message.content
+
         

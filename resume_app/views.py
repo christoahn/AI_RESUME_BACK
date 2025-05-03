@@ -5,6 +5,8 @@ from django.views import View
 from .service import resume_chunk
 from .model import Resume, Project, Job, Research, Education 
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 import json, traceback
 import os
 
@@ -81,6 +83,34 @@ class userInfoInputPage(View):
                             'keywords': ...}}
         }
         """
+        def generate_chunk(section, chunks):
+            # for entry in filter(lambda x: x.get('name') is not None, section['data'].values()):
+            #     model_fields = {field: entry.get(field) for field in section['fields']}
+
+            #     if section['use_chunk']:
+            #         chunk = chunks[section['key']]
+            #         desc = chunk.generate_resume(entry)
+            #         assert isinstance(desc, dict)
+            #         model_fields['description'] = desc['description']
+
+            #     section['model'].objects.create(resume=resume, **model_fields)
+            def process_entry(entry):
+                model_fields = {field: entry.get(field) for field in section['fields']}
+
+                if section['use_chunk']:
+                    chunk = chunks[section['key']]
+                    desc = chunk.generate_resume(entry)
+                    assert isinstance(desc, dict)
+                    model_fields['description'] = desc['description']
+
+                section['model'].objects.create(resume=resume, **model_fields)
+
+            entries = list(filter(lambda x: x.get('name') is not None, section['data'].values()))
+
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(process_entry, entry) for entry in entries]
+                for _ in as_completed(futures):
+                    pass 
         try:
             name       = request_body.get('name')
             phone      = request_body.get('phone')
@@ -110,61 +140,56 @@ class userInfoInputPage(View):
                 'researches': research_chunk
             }
 
-            for job in filter(lambda x: x['name'] != None, jobs.values()):
-                chunk = chunks['jobs']  # Different AI chunk generator
-                desc = chunk.generate_resume(job)
-                assert isinstance(desc, dict)
+            section_map = {
+                'jobs': {
+                    'key': 'jobs',
+                    'data': jobs,
+                    'model': Job,
+                    'fields': ['name', 'position', 'duration'],
+                    'use_chunk': True
+                },
+                'projects': {
+                    'key': 'projects',
+                    'data': projects,
+                    'model': Project,
+                    'fields': ['name', 'position', 'duration'],
+                    'use_chunk': True
+                },
+                'researches': {
+                    'key': 'researches',
+                    'data': researches,
+                    'model': Research,
+                    'fields': ['name', 'duration'],
+                    'use_chunk': True
+                },
+                'educations': {
+                    'data': educations,
+                    'model': Education,
+                    'fields': ['name', 'degree', 'major', 'duration', 'gpa', 'coursework'],
+                    'use_chunk': False
+                }
+            }
 
-                Job.objects.create(
-                    resume=resume,
-                    name=job['name'],
-                    position=job['position'],
-                    duration=job['duration'],
-                    description=desc['description']
-                )
+            threads = [
+            threading.Thread(target=generate_chunk(section_map['jobs'], chunks)),
+            threading.Thread(target=generate_chunk(section_map['projects'], chunks)),
+            threading.Thread(target=generate_chunk(section_map['researches'], chunks)),
+            threading.Thread(target=generate_chunk(section_map['educations'], chunks))
+            ]
 
-            # print(chunks)
-            for project in filter(lambda x: x['name'] != None, projects.values()):
-                # print(project['project_name'])
-                chunk = chunks['projects']  # Different AI chunk generator
-                desc = chunk.generate_resume(project)
-                assert isinstance(desc, dict)
+            for thread in threads:
+                thread.start()
 
-                Project.objects.create(
-                    resume=resume,
-                    name=project['name'],
-                    position=project['position'],
-                    duration=project['duration'],
-                    description=desc['description']
-                )
-
-            for research in filter(lambda x: x['name'] != None, researches.values()):
-                chunk = chunks['researches']    # Different AI chunk generator
-                desc = chunk.generate_resume(research)
-                assert isinstance(desc, dict)
-
-                Research.objects.create(
-                    resume=resume,
-                    name=research['name'],
-                    duration=research['duration'],
-                    description=desc['description']
-                )
-
-            for edu in filter(lambda x: x['name'] != None, educations.values()):
-                Education.objects.create(
-                    resume=resume,
-                    name=edu['name'],
-                    degree=edu['degree'],
-                    major = edu['major'],
-                    duration=edu['duration'],
-                    gpa = edu['gpa']
-                )
+            for thread in threads:
+                thread.join()
  
             return JsonResponse({'status':'success', 'resume_id': resume.id})
         except Exception as e:
             tb = traceback.format_exc()
             print(tb)  # 터미널 로그에 뜸
             return JsonResponse({'error': str(e)}, status=500)
+        
+
     
 
 class ResumePreviewEditPage(View):
@@ -198,4 +223,11 @@ class ResumePreviewEditPage(View):
         }
         # print(resume_data)
         return JsonResponse({'status': 'success', 'data': resume_data})
+    
+class ResumePreviewChat(View):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def POST(self, request):
+        return
     
